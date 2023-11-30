@@ -24,9 +24,14 @@
  * @license   https://opensource.org/licenses/AFL-3.0 Academic Free License 3.0 (AFL-3.0)
  */
 
+use PrestaShop\PrestaShop\Core\Product\ProductExtraContent;
+
 if (!defined('_PS_VERSION_')) {
     exit;
 }
+
+require_once _PS_MODULE_DIR_.'nutriscoreplus/classes/AttributNutriscore.php';
+require_once _PS_MODULE_DIR_.'nutriscoreplus/classes/AttributNutriscoreValueProduct.php';
 
 class NutriscorePlus extends Module
 {
@@ -56,8 +61,16 @@ class NutriscorePlus extends Module
     {
         if (!parent::install() ||
         !$this->registerHook('displayAdminProductsMainStepLeftColumnMiddle') ||
+        !$this->registerHook('displayProductTab') ||
+        !$this->registerHook('displayProductTabContent') ||
+        !$this->registerHook('productTab') ||
+        !$this->registerHook('productTabContent') ||
+        !$this->registerHook('displayProductExtraContent') ||
+        !$this->registerHook('displayAdminProductsExtra') ||
+        !$this->registerHook('actionProductUpdate') ||
         !$this->createTable() ||
         !$this->createTableLang() ||
+        !$this->createTableRelationnel() ||
         !$this->installTab('AdminInfoNutritionnelles','Informations Nutritionnelles', 'AdminCatalog')
         ) {
             return false;
@@ -69,13 +82,31 @@ class NutriscorePlus extends Module
     {
         if (!parent::uninstall() ||
         !$this->unregisterHook('displayAdminProductsMainStepLeftColumnMiddle') ||
+        !$this->unregisterHook('displayProductTab') ||
+        !$this->unregisterHook('displayProductTabContent') ||
+        !$this->unregisterHook('productTab') ||
+        !$this->unregisterHook('productTabContent') ||
+        !$this->unregisterHook('displayProductExtraContent') ||
+        !$this->unregisterHook('displayAdminProductsExtra') ||
+        !$this->unregisterHook('actionProductUpdate') ||
         !$this->deleteTable() ||
         !$this->deleteTableLang() ||
+        !$this->deleteTableRelationnel() ||
         !$this->uninstallTab()
         ) {
             return false;
         }
             return true;
+    }
+
+
+    public function getContent()
+    {
+        
+        
+
+        
+        // dump($tabAttribut);
     }
 
     public function installTab($className, $tabName, $tabParentName = false)
@@ -147,9 +178,102 @@ class NutriscorePlus extends Module
         );
     }
 
+    public function createTableRelationnel()
+    {
+        return Db::getInstance()->execute(
+            'CREATE TABLE IF NOT EXISTS '._DB_PREFIX_.'attribut_nutriscore_product(
+                id_attribut_nutriscore INT UNSIGNED NOT NULL,
+                id_product INT UNSIGNED NOT NULL,
+                attribut_nutriscore_value VARCHAR(255) NOT NULL,
+                PRIMARY KEY (id_attribut_nutriscore, id_product)
+            )'
+        );
+    }
+
+    public function deleteTableRelationnel()
+    {
+        return Db::getInstance()->execute(
+            'DROP TABLE IF EXISTS '._DB_PREFIX_.'attribut_nutriscore_product'
+        );
+    }
+
     public function hookDisplayAdminProductsMainStepLeftColumnMiddle($params)
+    {
+    
+    }
+    
+    public function hookProductTab()
+    {
+        return $this->hookDisplayProductTab();
+    }
+    public function hookDisplayProductTab()
+    {
+        // return $this->display(__FILE__, 'views/templates/hook/tab.tpl');
+    }
+
+    public function hookProductTabContent()
+    {
+        return $this->hookDisplayProductTabContent();
+    }
+    public function hookDisplayProductTabContent()
+    {
+        // $allAttribut = AttributNutriscore::getAttributByPosition();
+
+        // $this->smarty->assign(array(
+        //     'attributs' => $allAttribut
+        // ));
+
+        // return $this->display(__FILE__, 'views/templates/hook/tabContent.tpl');
+    }
+
+    public function hookDisplayProductExtraContent($params)
+    {
+        // $productExtraContent = new ProductExtraContent();
+        // $productExtraContent->setTitle($this->l('Attributs Nutritionnelles'));
+        // $productExtraContent->setContent($this->context->smarty->fetch(
+        //     'module:nutriscoreplus/views/templates/hook/tabContent.tpl'
+        // ));
+            
+        // return array($productExtraContent);
+    }
+
+    public function hookDisplayAdminProductsExtra($params)
+    {
+        $allAttribut = AttributNutriscore::getAttributByPosition();
+
+        $this->smarty->assign(array(
+            'attributs' => $allAttribut,
+            'product' => $params["id_product"]
+        ));
+            
+        return $this->display(__FILE__, 'views/templates/hook/tabContent.tpl');
+    }
+    
+    public function hookActionProductUpdate($params)
     {
 
     }
 
+    public function hookDisplayReassurance($params)
+    {
+        $url = explode('/',$_SERVER['REQUEST_URI']);
+        $url2 = explode('-',end($url));
+
+        // dump($url2);
+
+        $tabValueNutriscore = AttributNutriscoreValueProduct::getAllbyProduct($url2[0]);
+        $tabAttribut = [];
+        foreach ($tabValueNutriscore as $data) {
+            $tabAttribut[] = [
+                "name" => $data["attribut_nutriscore_name"],
+                "valeur" => $data["attribut_nutriscore_value"]
+            ];
+        }
+
+        $this->smarty->assign(array(
+            "values" => $tabAttribut
+        ));
+
+        return $this->display(__FILE__,'views/templates/hook/attributsNutriscore.tpl');
+    }
 }
