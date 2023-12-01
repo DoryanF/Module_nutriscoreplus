@@ -99,16 +99,6 @@ class NutriscorePlus extends Module
             return true;
     }
 
-
-    public function getContent()
-    {
-        
-        
-
-        
-        // dump($tabAttribut);
-    }
-
     public function installTab($className, $tabName, $tabParentName = false)
     {
         // ajouter un lien vers le controller d'admin
@@ -208,7 +198,7 @@ class NutriscorePlus extends Module
     }
     public function hookDisplayProductTab()
     {
-        // return $this->display(__FILE__, 'views/templates/hook/tab.tpl');
+
     }
 
     public function hookProductTabContent()
@@ -217,24 +207,12 @@ class NutriscorePlus extends Module
     }
     public function hookDisplayProductTabContent()
     {
-        // $allAttribut = AttributNutriscore::getAttributByPosition();
 
-        // $this->smarty->assign(array(
-        //     'attributs' => $allAttribut
-        // ));
-
-        // return $this->display(__FILE__, 'views/templates/hook/tabContent.tpl');
     }
 
     public function hookDisplayProductExtraContent($params)
     {
-        // $productExtraContent = new ProductExtraContent();
-        // $productExtraContent->setTitle($this->l('Attributs Nutritionnelles'));
-        // $productExtraContent->setContent($this->context->smarty->fetch(
-        //     'module:nutriscoreplus/views/templates/hook/tabContent.tpl'
-        // ));
-            
-        // return array($productExtraContent);
+
     }
 
     public function hookDisplayAdminProductsExtra($params)
@@ -259,7 +237,6 @@ class NutriscorePlus extends Module
         $url = explode('/',$_SERVER['REQUEST_URI']);
         $url2 = explode('-',end($url));
 
-        // dump($url2);
 
         $tabValueNutriscore = AttributNutriscoreValueProduct::getAllbyProduct($url2[0]);
         $tabAttribut = [];
@@ -270,8 +247,32 @@ class NutriscorePlus extends Module
             ];
         }
 
+        $exist = AttributNutriscoreValueProduct::getIdProductExist($url2[0]);
+
         $this->smarty->assign(array(
-            "values" => $tabAttribut
+            "values" => $tabAttribut,
+            'exist' => $exist
+        ));
+
+        return $this->display(__FILE__,'views/templates/hook/attributsNutriscore.tpl');
+    }
+
+    public function hookDisplayAfterProductThumbs($params)
+    {
+        $tabValueNutriscore = AttributNutriscoreValueProduct::getAllbyProduct($params["product"]["id_product"]);
+        $tabAttribut = [];
+        foreach ($tabValueNutriscore as $data) {
+            $tabAttribut[] = [
+                "name" => $data["attribut_nutriscore_name"],
+                "valeur" => $data["attribut_nutriscore_value"]
+            ];
+        }
+
+        $exist = AttributNutriscoreValueProduct::getIdProductExist($params["product"]["id_product"]);
+
+        $this->smarty->assign(array(
+            "values" => $tabAttribut,
+            'exist' => $exist
         ));
 
         return $this->display(__FILE__,'views/templates/hook/attributsNutriscore.tpl');

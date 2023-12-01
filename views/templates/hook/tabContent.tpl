@@ -3,7 +3,7 @@
         {if $attribut["active"] == 1}
             <div class="form-group">
             <label class="form-control-label" for="{$attribut["id_attribut_nutriscore"]}">{$attribut["attribut_nutriscore_name"]}</label>
-            <input type="text" class="form-control" id="{$attribut["id_attribut_nutriscore"]}" name="{$attribut["id_attribut_nutriscore"]}"/>
+            <input type="text" class="form-control" id="{$attribut["id_attribut_nutriscore"]}" name="{$attribut["id_attribut_nutriscore"]}" placeholder="g"/>
             <input type="hidden" value="{$product}" name="product"/>
             </div>
             <br />

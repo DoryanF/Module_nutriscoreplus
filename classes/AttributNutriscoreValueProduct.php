@@ -23,4 +23,13 @@ class AttributNutriscoreValueProduct extends ObjectModel
         }
     }
 
+    public static function getIdProductExist($productId)
+    {
+        $sql = 'SELECT id_product 
+                FROM '._DB_PREFIX_.'attribut_nutriscore_product 
+                WHERE id_product = '.$productId;
+
+        return DB::getInstance()->getValue($sql);
+    }
+
 }
